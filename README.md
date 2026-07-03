@@ -1,8 +1,23 @@
 # vision-mcp
 
-An [MCP](https://modelcontextprotocol.io/) server that gives a text-only LLM vision. It accepts image(s) plus a prompt, forwards them to a configurable vision model, and returns text. The default backend is **z.ai GLM-4.6V** (via the OpenAI Chat Completions provider); an Anthropic-format provider is also supported. It exposes **five** tools over stdio — including video analysis (ffmpeg frame extraction) and region zoom (sharp) for fine detail.
+An [MCP](https://modelcontextprotocol.io/) server that gives a **text-only coding agent vision, using the z.ai coding plan you already have.**
+
+The z.ai coding plan's text/coding models have **no vision** — they reject image input. But **`glm-4.6v` is a multimodal model on that same plan**, reachable at the same coding-plan endpoint (`https://api.z.ai/api/coding/paas/v4`) with the **same API key** and same billing. vision-mcp is the bridge: it accepts an image (or a video, or a cropped region) plus a prompt, forwards it to `glm-4.6v` on your plan, and returns text. It exposes **five** tools over stdio — including video analysis (ffmpeg frame extraction) and region zoom (sharp) for fine detail — to any MCP client. The default backend is **z.ai GLM-4.6V** (OpenAI Chat Completions format); an Anthropic-format provider is also supported for other gateways.
 
 The published npm package **`@keohanoi/vision-mcp`** runs under **Node.js ≥ 18** via `npx` — no install step. For development / from-source, **[bun](https://bun.sh)** runs the TypeScript directly with no build step.
+
+## Why
+
+The z.ai coding plan already bundles a vision-capable model alongside its text/coding models — but the models you actually drive (and most agent defaults) are text-only and can't see images. This server routes image/OCR/video calls to `glm-4.6v` on your **same plan, same API key, same billing** — no separate vision subscription and no second account.
+
+Use it whenever your coding agent needs to:
+
+- Read a **screenshot** or UI mock
+- **OCR** an error message, stack trace, log, or config from an image
+- **Compare** two UI states (before/after, diffs)
+- **Summarize a video** by sampled frames
+
+Works with any MCP client — Claude Code, OpenCode, and anything else that speaks MCP over stdio.
 
 ## Prerequisites
 
@@ -47,7 +62,7 @@ Add the server to your MCP client config (e.g. Claude Code's `mcpServers`, OpenC
       "env": {
         "VISION_PROVIDER": "openai",
         "VISION_BASE_URL": "https://api.z.ai/api/coding/paas/v4",
-        "VISION_API_KEY": "your-api-key",
+        "VISION_API_KEY": "your-z.ai-coding-plan-key",
         "VISION_MODEL": "glm-4.6v"
       }
     }
@@ -68,7 +83,7 @@ claude mcp add vision -- npx -y @keohanoi/vision-mcp
 | `VISION_PROVIDER` | no | `openai` | `anthropic` (→ `/v1/messages`) or `openai` (→ `{base}/chat/completions`). Defaults to `openai` (z.ai) |
 | `VISION_BASE_URL` | no (openai) / yes (anthropic) | `https://api.z.ai/api/coding/paas/v4` *(when provider=openai)* | **Recommended.** Collision-safe alias; takes precedence over the provider-specific var below |
 | `VISION_API_KEY` | yes | — | **Recommended.** Collision-safe alias for the API key |
-| `VISION_MODEL` | no (openai) / yes (anthropic) | `glm-4.6v` *(when provider=openai)* | **Recommended.** Collision-safe alias; **must be a multimodal/vision model** |
+| `VISION_MODEL` | no (openai) / yes (anthropic) | `glm-4.6v` *(when provider=openai)* | **Recommended.** Collision-safe alias; **must be a multimodal/vision model.** On the z.ai coding plan: **`glm-4.6v`** (default), also `glm-4.5v` and `glm-4.6v-flash` |
 | `VISION_THINKING` | no | `disabled` | `enabled` \| `disabled` — controls GLM thinking mode. Default `disabled` for fast/cheap perception & OCR |
 | `ANTHROPIC_BASE_URL` | anthropic | — | Anthropic-format endpoint (no `/v1`; the SDK appends paths). Used only if `VISION_BASE_URL` is unset |
 | `ANTHROPIC_API_KEY` | anthropic | — | API key. Used only if `VISION_API_KEY` is unset |
@@ -102,7 +117,7 @@ Then configure your MCP client to run the server from source.
       "env": {
         "VISION_PROVIDER": "openai",
         "VISION_BASE_URL": "https://api.z.ai/api/coding/paas/v4",
-        "VISION_API_KEY": "your-z.ai-key",
+        "VISION_API_KEY": "your-z.ai-coding-plan-key",
         "VISION_MODEL": "glm-4.6v",
         "VISION_THINKING": "disabled",
         "VISION_MAX_TOKENS": "1024",
