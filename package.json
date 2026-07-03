@@ -1,0 +1,46 @@
+{
+  "name": "@keohanoi/vision-mcp",
+  "version": "0.1.0",
+  "description": "MCP server that gives any text-only LLM vision — image analysis, OCR, comparison, region zoom, and video frame analysis.",
+  "type": "module",
+  "bin": {
+    "vision-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "build": "bun run scripts/build.ts",
+    "prepublishOnly": "bun run build",
+    "test": "bun run scripts/test-vision.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "sharp": "^0.35.1"
+  },
+  "devDependencies": {
+    "@anthropic-ai/sdk": "^0.40.1",
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@types/bun": "latest",
+    "typescript": "^5.9.2",
+    "zod": "^3.25.76"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "author": "keohanoi",
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "vision",
+    "image",
+    "ocr",
+    "claude",
+    "glm"
+  ]
+}
